@@ -3,11 +3,19 @@
     "rewrites": [
         {
             "source": "/api/(.*)",
-            "destination": "backend/api/index.ts"
+            "destination": "api/index.ts"
+        },
+        {
+            "source": "/assets/(.*)",
+            "destination": "public/assets/$1"
+        },
+        {
+            "source": "/vite.svg",
+            "destination": "public/vite.svg"
         },
         {
             "source": "/(.*)",
-            "destination": "public/$1"
+            "destination": "public/index.html"
         }
     ]
 }
