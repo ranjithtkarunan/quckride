@@ -6,7 +6,7 @@ export enum UserRole {
     VENDOR = 'vendor'
 }
 
-export interface IUser extends Document {
+export interface IUser {
     name: string;
     email: string;
     passwordHash: string;

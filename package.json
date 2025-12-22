@@ -1,6 +1,11 @@
 {
     "name": "quckride-monorepo",
+    "version": "1.0.0",
+    "type": "module",
     "private": true,
+    "devDependencies": {
+        "typescript": "^5.0.0"
+    },
     "scripts": {
         "build": "npm install --prefix backend && cd frontend && npm install && npm run build && cd .. && mkdir -p public && cp -r frontend/dist/* public/"
     }
