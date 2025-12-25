@@ -13,7 +13,11 @@ const Register: React.FC = () => {
         phone: '',
         role: 'customer' as 'customer' | 'vendor',
         vehicleDetails: { make: '', model: '', regNumber: '' },
-        vendorDetails: { shopName: '', isAvailable: true }
+        vendorDetails: {
+            shopName: '',
+            isAvailable: true,
+            services: [] as string[]
+        }
     });
 
     const [isLoading, setIsLoading] = useState(false);
@@ -22,12 +26,59 @@ const Register: React.FC = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
 
+    const availableServices = [
+        'Tyre Repair',
+        'Battery Jump Start',
+        'Fuel Delivery',
+        'Towing',
+        'Lockout Service',
+        'Minor Repairs'
+    ];
+
+    const toggleService = (service: string) => {
+        setFormData(prev => ({
+            ...prev,
+            vendorDetails: {
+                ...prev.vendorDetails,
+                services: prev.vendorDetails.services.includes(service)
+                    ? prev.vendorDetails.services.filter(s => s !== service)
+                    : [...prev.vendorDetails.services, service]
+            }
+        }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
         try {
-            const response = await api.post('/auth/register', formData);
+            // Transform data to match backend expectations
+            const payload: any = {
+                name: formData.name,
+                email: formData.email,
+                password: formData.password,
+                phone: formData.phone,
+                role: formData.role
+            };
+
+            if (formData.role === 'customer') {
+                // Convert vehicleDetails object to vehicles array
+                payload.vehicles = [formData.vehicleDetails];
+            } else {
+                // Add complete vendorDetails with required fields
+                payload.vendorDetails = {
+                    shopName: formData.vendorDetails.shopName,
+                    baseLocation: {
+                        type: 'Point',
+                        coordinates: [77.5946, 12.9716] // Default to Bangalore coordinates
+                    },
+                    isAvailable: true,
+                    services: formData.vendorDetails.services,
+                    rating: 0
+                };
+            }
+
+            const response = await api.post('/auth/register', payload);
             login(response.data.token, response.data.user);
             navigate(response.data.user.role === 'customer' ? '/customer' : '/vendor');
         } catch (err: any) {
@@ -194,6 +245,28 @@ const Register: React.FC = () => {
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-white placeholder-slate-500 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500"
                                                 placeholder="Expert Tyres"
                                             />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-slate-300">Services Offered</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {availableServices.map(service => (
+                                                <label
+                                                    key={service}
+                                                    className={`flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition-all ${formData.vendorDetails.services.includes(service)
+                                                            ? 'bg-primary-500/20 border-primary-500/50 text-primary-300'
+                                                            : 'bg-white/5 border-white/10 text-slate-400 hover:border-white/20'
+                                                        }`}
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={formData.vendorDetails.services.includes(service)}
+                                                        onChange={() => toggleService(service)}
+                                                        className="w-4 h-4 rounded accent-primary-500"
+                                                    />
+                                                    <span className="text-sm">{service}</span>
+                                                </label>
+                                            ))}
                                         </div>
                                     </div>
                                     <div className="p-4 bg-primary-500/10 border border-primary-500/20 rounded-2xl">
